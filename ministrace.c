@@ -129,6 +129,14 @@ void print_syscall_args(pid_t child, int num) {
     }
 }
 
+int pause_on(int syscall_req, int syscall) {
+    if(syscall == syscall_req)
+        do {
+            char buf[2];
+            fgets(buf, sizeof(buf), stdin); // waits until enter to continue
+        } while(0);
+}
+
 void print_syscall(pid_t child, int syscall_req) {
     int num;
     num = get_reg(child, orig_eax);
@@ -141,14 +149,6 @@ void print_syscall(pid_t child, int syscall_req) {
     if( syscall_req <= MAX_SYSCALL_NUM) {
         pause_on( num, syscall_req);
     }
-}
-
-int pause_on(int syscall_req, int syscall) {
-    if(syscall == syscall_req)
-        do {
-            char buf[2];
-            fgets(buf, sizeof(buf), stdin); // waits until enter to continue
-        } while(0);
 }
 
 int do_trace(pid_t child, int syscall_req) {
