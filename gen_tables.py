@@ -20,14 +20,14 @@ def process_define(syscalls, text):
     if text.startswith('SYSCALL_DEFINE('):
         m = re.search(r'^SYSCALL_DEFINE\(([^)]+)\)\(([^)]+)\)$', text)
         if not m:
-            print "Unable to parse:", text
+            print ("Unable to parse:", text)
             return
         name, args = m.groups()
         types = [s.strip().rsplit(" ", 1)[0] for s in args.split(",")]
     else:
         m = re.search(r'^SYSCALL_DEFINE(\d)\(([^,]+)\s*(?:,\s*([^)]+))?\)$', text)
         if not m:
-            print "Unable to parse:", text
+            print ("Unable to parse:", text)
             return
         nargs, name, argstr = m.groups()
         if argstr is not None:
@@ -72,8 +72,8 @@ def parse_type(t):
 def write_output(syscalls_h, types, numbers):
     out = open(syscalls_h, 'w')
 
-    print >>out, "#define MAX_SYSCALL_NUM %d" % (max(numbers.keys()),)
-    print >>out, "struct syscall_entry syscalls[] = {"
+    print ("#define MAX_SYSCALL_NUM %d" % (max(numbers.keys()),), file=out)
+    print ("struct syscall_entry syscalls[] = {", file=out)
     for num in sorted(numbers.keys()):
         name = numbers[num]
         if name in types:
@@ -81,19 +81,19 @@ def write_output(syscalls_h, types, numbers):
         else:
             args = ["void*"] * 6
 
-        print >>out, "  [%d] = {" % (num,)
-        print >>out, "    .name  = \"%s\"," % (name,)
-        print >>out, "    .nargs = %d," % (len(args,))
+        print ("  [%d] = {" % (num,), file=out)
+        print ("    .name  = \"%s\"," % (name,), file=out)
+        print ("    .nargs = %d," % (len(args,)), file=out)
         out.write(   "    .args  = {")
         out.write(", ".join([parse_type(t) for t in args] + ["-1"] * (6 - len(args))))
         out.write("}},\n");
 
-    print >>out, "};"
+    print ("};", file=out)
     out.close()
 
 def main(args):
     if not args:
-        print >>sys.stderr, "Usage: %s /path/to/linux-2.6" % (sys.argv[0],)
+        print ("Usage: %s /path/to/linux-2.6" % (sys.argv[0],), file=sys.stderr)
         return 1
     linux_dir = args[0]
     if os.uname()[4] == 'x86_64':
