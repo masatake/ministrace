@@ -97,13 +97,16 @@ def main(args):
         return 1
     linux_dir = args[0]
     if os.uname()[4] == 'x86_64':
-        unistd_h = "arch/x86/include/asm/unistd_64.h"
-        if not (os.path.exists(os.path.join(linux_dir, unistd_h))):
-            unistd_h = "arch/x86/include/generated/uapi/asm/unistd_64.h"
+        unistd_h = "/usr/include/asm/unistd_64.h"
+        if not (os.path.exists(unistd_h)):
+            unistd_h = "arch/x86/include/asm/unistd_64.h"
+            if not (os.path.exists(os.path.join(linux_dir, unistd_h))):
+                unistd_h = "arch/x86/include/generated/uapi/asm/unistd_64.h"
     else:
         unistd_h = "arch/x86/include/asm/unistd_32.h"
 
-    syscall_numbers = do_syscall_numbers(os.path.join(linux_dir, unistd_h))
+    syscall_numbers = do_syscall_numbers(unistd_h if unistd_h[0] == '/'
+                                         else os.path.join(linux_dir, unistd_h))
     syscall_types   = find_args(linux_dir)
     write_output('syscallents.h', syscall_types, syscall_numbers)
 
