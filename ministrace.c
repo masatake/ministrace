@@ -193,6 +193,7 @@ int main(int argc, char **argv) {
 
     if (argc < 2) {
         fprintf(stderr, "Usage: %s [-s <syscall int>|-n <syscall name>] <program> <args>\n", argv[0]);
+        fprintf(stderr, "       %s [-s <syscall int>|-n <syscall name>] -p <pid>\n", argv[0]);
         exit(1);
     }
 
@@ -227,9 +228,34 @@ int main(int argc, char **argv) {
     }
 
 
+    int child_argc = argc - push;
+    char **child_argv = argv + push;
+
+    if (strcmp(child_argv[0], "-p") == 0) {
+        if (child_argc < 2) {
+            fprintf(stderr, "Error: no pid given to -p option\n");
+            exit(1);
+        } else if (child_argc > 2) {
+	    fprintf(stderr, "Error: too many arguments\n");
+	    exit(1);
+	}
+
+        child = atoi(child_argv[1]);
+        if (child == 0) {
+            fprintf(stderr, "Error: failed to convert the PID string to an integer\n");
+            exit(1);
+        }
+
+        if (ptrace (PTRACE_ATTACH, child, NULL, NULL) != 0) {
+            fprintf(stderr,"Error: failed to attach to the process (%d)\n", child);
+            exit(1);
+        }
+        return do_trace(child, syscall);
+    }
+
     child = fork();
     if (child == 0) {
-        return do_child(argc-push, argv+push);
+        return do_child(child_argc, child_argv);
     } else {
         return do_trace(child, syscall);
     }
